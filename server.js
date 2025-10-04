@@ -10,18 +10,64 @@ const app = express();
 const server = http.createServer(app);
 
 // Configuración CORS para Railway/Render
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  process.env.FRONTEND_URL,
+  'https://animatronics-frontend.up.railway.app',
+  'https://animatronics-frontend.onrender.com'
+].filter(Boolean); // Eliminar valores undefined
+
+console.log('🌐 Orígenes CORS permitidos:', allowedOrigins);
+
 const io = socketIo(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "*",
+    origin: (origin, callback) => {
+      // Permitir requests sin origin (como mobile apps, curl, Postman)
+      if (!origin) return callback(null, true);
+      
+      // Permitir orígenes en la lista
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } 
+      // Permitir IPs locales (192.168.x.x, 10.x.x.x)
+      else if (origin.match(/^http:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+):\d+$/)) {
+        console.log('✅ Permitiendo red local:', origin);
+        callback(null, true);
+      }
+      else {
+        console.warn('⚠️ Origen bloqueado por CORS:', origin);
+        callback(new Error('No permitido por CORS'));
+      }
+    },
     methods: ["GET", "POST"],
-    credentials: true
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"]
   }
 });
 
-// Middleware
+// Middleware CORS para HTTP
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "*",
-  credentials: true
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    
+    // Verificar lista permitida
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } 
+    // Permitir IPs locales
+    else if (origin.match(/^http:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+):\d+$/)) {
+      console.log('✅ HTTP permitiendo red local:', origin);
+      callback(null, true);
+    }
+    else {
+      console.warn('⚠️ HTTP Origen bloqueado por CORS:', origin);
+      callback(null, false);
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(express.static('public'));
