@@ -39,6 +39,15 @@ const animatronics = {
 // ============================================
 // 🔧 CONFIGURACIÓN MQTT FLEXIBLE
 // ============================================
+
+// DEBUG: Mostrar variables de entorno antes de procesarlas
+console.log('🔍 DEBUG - Variables de entorno RAW:');
+console.log('   MQTT_HOST:', process.env.MQTT_HOST);
+console.log('   MQTT_PORT:', process.env.MQTT_PORT);
+console.log('   MQTT_USER:', process.env.MQTT_USER);
+console.log('   MQTT_PASSWORD:', process.env.MQTT_PASSWORD ? '***' : 'undefined');
+console.log('   MQTT_PROTOCOL:', process.env.MQTT_PROTOCOL);
+
 const MQTT_CONFIG = {
   host: process.env.MQTT_HOST || 'localhost',
   port: parseInt(process.env.MQTT_PORT) || 1883,
@@ -50,7 +59,7 @@ const MQTT_CONFIG = {
 // Construir URL de conexión MQTT
 const mqttUrl = `${MQTT_CONFIG.protocol}://${MQTT_CONFIG.host}:${MQTT_CONFIG.port}`;
 
-console.log('🔗 Configuración MQTT:');
+console.log('🔗 Configuración MQTT procesada:');
 console.log(`   Host: ${MQTT_CONFIG.host}`);
 console.log(`   Port: ${MQTT_CONFIG.port}`);
 console.log(`   Protocol: ${MQTT_CONFIG.protocol}`);
